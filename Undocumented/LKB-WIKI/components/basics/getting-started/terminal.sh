@@ -1,17 +1,11 @@
 #!/usr/bin/env bash
 
 echo ""
-
 set -e
 
 # Detect distro
-if [ -f /etc/os-release ]; then
-    . /etc/os-release
-    DISTRO=$ID
-else
-    echo "Unsupported system"
-    exit 1
-fi
+. /etc/os-release
+DISTRO=$ID
 
 echo "Detected distro: $DISTRO"
 echo ""
@@ -22,28 +16,34 @@ case "$DISTRO" in
         sudo apt update -qq
         sudo apt install -y curl unzip wget zsh kitty \
             zsh-autosuggestions zsh-syntax-highlighting
+        AUTOSUG=/usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+        SYNTAX=/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
         ;;
     fedora)
         sudo dnf install -y curl unzip wget zsh kitty \
             zsh-autosuggestions zsh-syntax-highlighting
+        AUTOSUG=/usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+        SYNTAX=/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
         ;;
     arch)
         sudo pacman -Sy --noconfirm curl unzip wget zsh kitty \
             zsh-autosuggestions zsh-syntax-highlighting
+        AUTOSUG=/usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+        SYNTAX=/usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
         ;;
     opensuse*|suse)
         sudo zypper install -y curl unzip wget zsh kitty \
             zsh-autosuggestions zsh-syntax-highlighting
+        AUTOSUG=/usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+        SYNTAX=/usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
         ;;
     alpine)
         sudo apk add curl unzip wget fontconfig zsh kitty-terminfo
         rm -rf ~/.zsh-autosuggestions ~/.zsh-syntax-highlighting
         git clone -q https://github.com/zsh-users/zsh-autosuggestions ~/.zsh-autosuggestions
         git clone -q https://github.com/zsh-users/zsh-syntax-highlighting ~/.zsh-syntax-highlighting
-        ;;
-    *)
-        echo "Unsupported distro: $DISTRO"
-        exit 1
+        AUTOSUG=~/.zsh-autosuggestions/zsh-autosuggestions.zsh
+        SYNTAX=~/.zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
         ;;
 esac
 
@@ -53,6 +53,9 @@ echo "Installing..."
 rm -rf ~/.zsh-autocomplete
 git clone -q --depth 1 https://github.com/marlonrichert/zsh-autocomplete ~/.zsh-autocomplete
 
+# IMPORTANT FIX: remove its internal .zshrc to prevent auto-loading
+rm -f ~/.zsh-autocomplete/.zshrc
+
 # Create directories
 mkdir -p ~/.local/share/fonts ~/.config/kitty ~/.config
 
@@ -61,9 +64,7 @@ wget -q -O ~/.local/share/fonts/SpaceMono.zip \
     https://github.com/ryanoasis/nerd-fonts/releases/latest/download/SpaceMono.zip
 
 unzip -qq -o ~/.local/share/fonts/SpaceMono.zip -d ~/.local/share/fonts
-
-# Silent font cache
-fc-cache -f > /dev/null 2>&1
+fc-cache -f >/dev/null 2>&1
 
 # Write Kitty config
 cat > ~/.config/kitty/kitty.conf <<EOF
@@ -78,21 +79,22 @@ shell /usr/bin/zsh
 EOF
 
 # Install Starship (silent)
-curl -sS https://starship.rs/install.sh | sh -s -- -y > /dev/null 2>&1
+curl -sS https://starship.rs/install.sh | sh -s -- -y >/dev/null 2>&1
+starship preset catppuccin-powerline -o ~/.config/starship.toml >/dev/null 2>&1
 
-# Apply preset (silent)
-starship preset catppuccin-powerline -o ~/.config/starship.toml > /dev/null 2>&1
+# Remove old plugin block
+sed -i '/# ZSH Plugins/,$d' ~/.zshrc 2>/dev/null || true
 
-# Add ZSH plugins + Starship to .zshrc
-cat >> ~/.zshrc <<'EOF'
+# Add plugin block
+cat >> ~/.zshrc <<EOF
 
 # ZSH Plugins
-source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh 2>/dev/null || source ~/.zsh-autosuggestions/zsh-autosuggestions.zsh
-source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null || source ~/.zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source $AUTOSUG
+source $SYNTAX
 source ~/.zsh-autocomplete/zsh-autocomplete.plugin.zsh
 
 # Starship prompt
-eval "$(starship init zsh)"
+eval "\$(starship init zsh)"
 EOF
 
 # Set ZSH as default shell
