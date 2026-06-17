@@ -73,7 +73,7 @@ font_size 15.0
 cursor_trail 100
 hide_window_decorations no
 tab_bar_style powerline
-tab_bar_min_tabs 1
+tab_bar_min_tabs 2
 tab_powerline_style round
 shell /usr/bin/zsh
 EOF
