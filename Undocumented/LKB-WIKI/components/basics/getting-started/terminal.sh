@@ -72,6 +72,7 @@ font_family SpaceMono Nerd Font
 font_size 15.0
 cursor_trail 100
 hide_window_decorations no
+confirm_os_window_close 0
 tab_bar_style powerline
 tab_bar_min_tabs 2
 tab_powerline_style round
