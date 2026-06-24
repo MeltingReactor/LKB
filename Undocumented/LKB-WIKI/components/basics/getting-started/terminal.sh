@@ -98,6 +98,9 @@ source ~/.zsh-autocomplete/zsh-autocomplete.plugin.zsh
 eval "\$(starship init zsh)"
 EOF
 
+# Fix home and end keybinds in zsh
+echo -e "\nbindkey '\\\e[H' beginning-of-line\nbindkey '\\\e[F' end-of-line\nbindkey '\\\e[1;5D' backward-word\nbindkey '\\\e[1;5C' forward-word" >> ~/.zshrc && source ~/.zshrc
+
 # Set ZSH as default shell
 chsh -s "$(which zsh)"
 
