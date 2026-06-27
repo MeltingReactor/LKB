@@ -35,11 +35,12 @@ rm -f ~/.zsh-autocomplete/.zshrc
 # Create directories
 mkdir -p ~/.local/share/fonts ~/.config/kitty ~/.config
 
-# Install SpaceMono Nerd Font (silent)
-wget -q -O ~/.local/share/fonts/SpaceMono.zip \
-    https://github.com
+# Install SpaceMono Nerd Font via exact cURL target
+curl -fLo ~/.local/share/fonts/SpaceMono.tar.xz \
+    https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/SpaceMono.tar.xz
 
-unzip -qq -o ~/.local/share/fonts/SpaceMono.zip -d ~/.local/share/fonts
+tar -xf ~/.local/share/fonts/SpaceMono.tar.xz -C ~/.local/share/fonts/
+rm ~/.local/share/fonts/SpaceMono.tar.xz
 fc-cache -f >/dev/null 2>&1
 
 # Write Kitty config optimized for WSLG rendering
